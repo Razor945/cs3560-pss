@@ -34,7 +34,6 @@ public class Schedule implements ScheduleInterface {
         return true;
     }
 
-
     @Override
     public boolean addTask(String name, String type, double startTime, double duration, int startDate, int endDate, int frequency) {
         // Handle Recurring tasks
@@ -61,11 +60,10 @@ public class Schedule implements ScheduleInterface {
         return true;
     }
 
-
     @Override
     public boolean removeTask(String name) {
         for (TaskInterface task : tasks) {
-            if(task.getName().equals(name)) {
+            if (task.getName().equals(name)) {
                 tasks.remove(task);
                 System.out.println("Task successfully removed.");
                 return true;
@@ -91,7 +89,6 @@ public class Schedule implements ScheduleInterface {
         return false; // No overlap
     }
 
-
     @Override
     public void viewTask(String name) {
         for (TaskInterface task : tasks) {
@@ -116,36 +113,6 @@ public class Schedule implements ScheduleInterface {
 
         System.out.println("Error: Task not found.");
         return false; // Task not found
-    }
-
-    public boolean exportSchedule(String fileName) {
-        return false;
-    //     Gson gson = new Gson();
-    //     try (Writer writer = new FileWriter(fileName)) {
-    //         gson.toJson(tasks, writer);
-    //         System.out.println("Schedule exported successfully to " + fileName);
-    //         return true;
-    //     } catch (IOException e) {
-    //         System.out.println("Error exporting schedule: " + e.getMessage());
-    //         return false;
-    //     }
-    }
-
-    public boolean importSchedule(String fileName) {
-        return false;
-    //     Gson gson = new Gson();
-    //     try (Reader reader = new FileReader(fileName)) {
-    //         tasks.clear(); // Clear existing tasks before importing
-    //         Task[] importedTasks = gson.fromJson(reader, Task[].class);
-    //         for (Task task : importedTasks) {
-    //             tasks.add(task);
-    //         }
-    //         System.out.println("Schedule imported successfully from " + fileName);
-    //         return true;
-    //     } catch (IOException e) {
-    //         System.out.println("Error importing schedule: " + e.getMessage());
-    //         return false;
-    //     }
     }
 
     @Override
@@ -194,12 +161,7 @@ public class Schedule implements ScheduleInterface {
         System.out.println("============================");
     }
 
-    private int getCurrentDate() {
-        // Use java.time to get the current date in YYYYMMDD format
-        java.time.LocalDate currentDate = java.time.LocalDate.now();
-        return currentDate.getYear() * 10000 + currentDate.getMonthValue() * 100 + currentDate.getDayOfMonth();
-    }
-
+    @Override
     public void viewTasksForTimeframe(int timeframe, int startDate) {
         System.out.println("\n========= SCHEDULE =========");
     
@@ -217,7 +179,41 @@ public class Schedule implements ScheduleInterface {
     
         System.out.println("============================");
     }
-    
+
+    // Export the schedule to a file
+    @Override
+    public boolean exportSchedule(String fileName) {
+        try (FileOutputStream fos = new FileOutputStream(fileName);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(tasks);
+            System.out.println("Schedule successfully exported to " + fileName);
+            return true;
+        } catch (IOException e) {
+            System.out.println("An error occurred while exporting the schedule: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // Import the schedule from a file
+    @Override
+    public boolean importSchedule(String fileName) {
+        try (FileInputStream fis = new FileInputStream(fileName);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            tasks = (List<TaskInterface>) ois.readObject();
+            System.out.println("Schedule successfully imported from " + fileName);
+            return true;
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("An error occurred while importing the schedule: " + e.getMessage());
+            return false;
+        }
+    }
+
+    private int getCurrentDate() {
+        // Use java.time to get the current date in YYYYMMDD format
+        java.time.LocalDate currentDate = java.time.LocalDate.now();
+        return currentDate.getYear() * 10000 + currentDate.getMonthValue() * 100 + currentDate.getDayOfMonth();
+    }
+
     private boolean isWithinWeek(int startDate, int taskStartDate) {
         // Parse startDate and taskStartDate to LocalDate
         java.time.LocalDate start = parseDateToLocalDate(startDate);
@@ -229,9 +225,6 @@ public class Schedule implements ScheduleInterface {
         // Check if taskStart falls within the week
         return (!taskStart.isBefore(start)) && (!taskStart.isAfter(weekEnd));
     }
-    
-    
-    
 
     private boolean isWithinMonth(int startDate, int taskStartDate) {
         java.time.LocalDate start = parseDateToLocalDate(startDate);
@@ -248,42 +241,12 @@ public class Schedule implements ScheduleInterface {
         return java.time.LocalDate.of(year, month, day);
     }
     
-    private int parseDate(String dateInput) {
-        try {
-            // Validate the format YYYY/MM/DD
-            String[] parts = dateInput.split("/");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid date format. Use YYYY/MM/DD.");
-            }
-    
-            int year = Integer.parseInt(parts[0]);
-            int month = Integer.parseInt(parts[1]);
-            int day = Integer.parseInt(parts[2]);
-    
-            // Validate ranges
-            if (month < 1 || month > 12) {
-                throw new IllegalArgumentException("Invalid month: " + month);
-            }
-            if (day < 1 || day > 31) {
-                throw new IllegalArgumentException("Invalid day: " + day);
-            }
-    
-            // Convert the date to an integer format for storage
-            return (year * 10000) + (month * 100) + day;
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
-            return -1; // Invalid date
-        }
-    }
-    
     public TaskInterface findTaskByName(String taskName) {
-    for (TaskInterface task : tasks) {
-        if (task.getName().equalsIgnoreCase(taskName)) {
-            return task; // Return the found task
+        for (TaskInterface task : tasks) {
+            if (task.getName().equalsIgnoreCase(taskName)) {
+                return task; // Return the found task
+            }
         }
+        return null; // Return null if no task is found
     }
-    return null; // Return null if no task is found
-}
-
-    
 }
